@@ -1,0 +1,1 @@
+Blocking chat application for simplicity?
