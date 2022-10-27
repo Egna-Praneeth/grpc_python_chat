@@ -1,6 +1,4 @@
 import threading
-from tkinter import *
-from tkinter import simpledialog
 
 import grpc
 
@@ -17,28 +15,65 @@ class Client:
         # the frame to put ui components on
         # self.window = window
         self.username = u
+        self.end_user = None
+        self.active_users = {}
         # create a gRPC channel + stubrpc.ChatServerStub
         channel = grpc.insecure_channel(address + ':' + str(port))
         self.conn = rpc.ChatServerStub(channel)
         # create new listening thread for when new message streams come in
         threading.Thread(target=self.__listen_for_messages, daemon=True).start()
         
+        self.join_chatspace()
+        print("You are connected to the chat server")
         self.menu()
 
     def menu(self):
-        print('''
-        Hi, this is the menu page. The available options are: 
-            1. Join the chat space.
-            2. Get Online Users List.
-            3. Chat with a specific user.
-            4.  
-        ''')
-        
-        self.join_chatspace()
+        print('''Hi, this is the menu page. The available options are: 
+1. Chat 
+2. Exit
+Please enter your choice (number):''')
+        option = int(input())
+        if option == 2: 
+            quit()
+        elif option == 1:
+            self.chat()
+        else:
+            print("Please select a valid option")
+            self.menu()
+    
+    def chat(self):
+        print("You can enter '/back' to return to menu")
         self.get_users_list()
-        print("You can send any message: ")
-        self.send_message()
+        self.end_user = input("Please enter the name of the user to chat with: ")
+        if self.end_user == '/back':
+            self.end_user = None
+            self.menu()
+            return 
+        if self.end_user not in self.active_users:
+            print("Please enter the correct username:")
+            chat()
+            return
+
+        if len(self.active_users[self.end_user]) > 0:
+            for msg in self.active_users[self.end_user]:
+                print("{}: {}".format(msg.name, msg.message))
         
+        while True:
+            message = input("{}(Me): ".format(self.username))
+            print("f1")
+            if message == "/back":
+                self.menu()
+                return 
+            print("f2")
+            if message != '':
+                note = chat.Note()  # create protobug message (called Note)
+                note.name = self.username  # set the username
+                note.message = message  # set the actual message of the note
+                note.dest = self.end_user
+                # print("S[{}] {}".format(n.name, n.message))  # debugging statement
+                print("f3")
+                self.conn.SendNote(note)  # send the Note to the server
+                print("f4")
 
     def __listen_for_messages(self):
         """
@@ -49,28 +84,16 @@ class Client:
         userName.username = self.username
         for note in self.conn.ChatStream(userName):  # this line will wait for new messages from the server!
             # print("R[{}] {}".format(note.name, note.message))  # debugging statement
-            print("{}: {}".format(note.name, note.message), end = '')
+            if note.name == self.end_user:
+                print("\r{}: {}\n{}(Me): ".format(note.name, note.message,self.username), end = '')
+            else:
+                if note.dest in self.active_users:
+                    self.active_users[note.dest].append(note)
+                else:
+                    self.active_users[note.dest] = [note]
+
             # self.chat_list.insert(END, "[{}] {}\n".format(note.name, note.message))  # add the message to the UI
 
-    def send_message(self):
-        """
-        This method is called when user enters something into the textbox
-        """
-        # message = self.entry_message.get()  # retrieve message from the UI
-        # message = input("Please enter your message: ")
-        while True:
-            # message = input("Please enter your message: ")
-            dest_user = input("To: ")
-            message = input("{}(Me): ".format(self.username))
-            
-            if message != '':
-                note = chat.Note()  # create protobug message (called Note)
-                note.name = self.username  # set the username
-                note.message = message  # set the actual message of the note
-                note.dest = dest_user
-                # print("S[{}] {}".format(n.name, n.message))  # debugging statement
-                self.conn.SendNote(note)  # send the Note to the server
-    
     def join_chatspace(self):
         userName = chat.UserName();
         userName.username = self.username
@@ -80,20 +103,18 @@ class Client:
     def get_users_list(self):
         i = 1
         users_list = self.conn.getListOfUsers(chat.Empty())
-        for user in users_list.users: 
-            print(str(i) + ". " + user)
+        print("Below is the list of active users: ")
+        for user in users_list.users:
+            if user in self.active_users:
+                # If the user's messages are unread. 1. ram [3] (this 3 indicates unread messages)
+                if len(self.active_users[user]) > 0:
+                    print(str(i) + ". " + user + " [{}]".format(len(self.active_users[user])))
+                else : # len of list is 0
+                    print(str(i) + ". " + user)
+            else:
+                self.active_users[user] = []        
+                print(str(i) + ". " + user)
             i = i + 1
-
-    # def __setup_ui(self):
-    #     self.chat_list = Text()
-    #     self.chat_list.pack(side=TOP)
-    #     self.lbl_username = Label(self.window, text=self.username)
-    #     self.lbl_username.pack(side=LEFT)
-    #     self.entry_message = Entry(self.window, bd=5)
-    #     self.entry_message.bind('<Return>', self.send_message)
-    #     self.entry_message.focus()
-    #     self.entry_message.pack(side=BOTTOM)
-
 
 if __name__ == '__main__':
     #root = Tk()  # I just used a very simple Tk window for the chat UI, this can be replaced by anything
