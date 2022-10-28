@@ -1,6 +1,13 @@
 Additional features:
 1. Uniqueness in username and Group name
 2. Remove username and group names from active list when the user disconnects. 
+
+3. Validation checks for wherever taking user input
+4. Give option to user to select username via number and not by typing the number. 
+
+Bugs: 
+1. only 1 unread message shown although two are sent. 
+
 Issues: 
     1. Line buffering problem. When listen thread prints. 
         Egna(Me): asdfasdfasfd (have not sent this message but I have received: Ram: Hi Egna)

@@ -61,6 +61,7 @@ Please enter your choice (number):''')
         while True:
             message = input("{}(Me): ".format(self.username))
             if message == "/back":
+                self.end_user = None
                 self.menu()
                 return 
             if message != '':
@@ -89,7 +90,8 @@ Please enter your choice (number):''')
                 if note.dest in self.active_users:
                     self.active_users[note.name].append(note)
                 else:
-                    self.active_users[note.name] = [note]
+                    self.active_users[note.name] = []
+                    self.active_users[note.name].append(note)
 
             # self.chat_list.insert(END, "[{}] {}\n".format(note.name, note.message))  # add the message to the UI
 
