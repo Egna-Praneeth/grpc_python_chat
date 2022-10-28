@@ -1,4 +1,28 @@
 Issues: 
 1. Line buffering problem. When listen thread prints. 
-Egna(Me): asdfasdfasfd (have not sent this message but I have received: Ram: Hi Egna)
-Ram: Hi Egnadfasdfasfd is being printed. 
+    Egna(Me): asdfasdfasfd (have not sent this message but I have received: Ram: Hi Egna)
+    Ram: Hi Egnadfasdfasfd is being printed. 
+
+Resolved: Overwritting previously printed lines in python
+https://itnext.io/overwrite-previously-printed-lines-4218a9563527
+
+2. Have to clean internal line buffers. Eg. 
+    Egna(Me): asdfasdfasfd (have not sent this message but I have received: Ram: Hi Egna)
+    Ram: Hi Egnadfasdfasfd is being printed. 
+    Then when Egna wants to send Hi, he types : Egna(Me): Hi. But the message sent is:
+     asdfasdfasfdHi
+
+    To reproduce this issue:
+
+    import time
+    import sys
+
+    time.sleep(3)
+
+    sys.stdout.flush()
+    msg = input("Type: ")
+    print(msg)
+
+    =================
+    When sleeping, you can type something, even this will be printed. 
+    (How to flush stdin)

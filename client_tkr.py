@@ -60,20 +60,17 @@ Please enter your choice (number):''')
         
         while True:
             message = input("{}(Me): ".format(self.username))
-            print("f1")
             if message == "/back":
                 self.menu()
                 return 
-            print("f2")
             if message != '':
                 note = chat.Note()  # create protobug message (called Note)
                 note.name = self.username  # set the username
                 note.message = message  # set the actual message of the note
                 note.dest = self.end_user
                 # print("S[{}] {}".format(n.name, n.message))  # debugging statement
-                print("f3")
+                
                 self.conn.SendNote(note)  # send the Note to the server
-                print("f4")
 
     def __listen_for_messages(self):
         """
@@ -85,12 +82,14 @@ Please enter your choice (number):''')
         for note in self.conn.ChatStream(userName):  # this line will wait for new messages from the server!
             # print("R[{}] {}".format(note.name, note.message))  # debugging statement
             if note.name == self.end_user:
-                print("\r{}: {}\n{}(Me): ".format(note.name, note.message,self.username), end = '')
+                LINE_CLEAR = '\x1b[2K' 
+                print('\r', end=LINE_CLEAR)
+                print("{}: {}\n{}(Me): ".format(note.name, note.message,self.username), end = '')
             else:
                 if note.dest in self.active_users:
-                    self.active_users[note.dest].append(note)
+                    self.active_users[note.name].append(note)
                 else:
-                    self.active_users[note.dest] = [note]
+                    self.active_users[note.name] = [note]
 
             # self.chat_list.insert(END, "[{}] {}\n".format(note.name, note.message))  # add the message to the UI
 
