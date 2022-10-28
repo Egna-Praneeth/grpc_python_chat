@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nchat.proto\x12\x04grpc\"\x07\n\x05\x45mpty\"\x1c\n\x08UserName\x12\x10\n\x08username\x18\x01 \x01(\t\"3\n\x04Note\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x0c\n\x04\x64\x65st\x18\x03 \x01(\t\"\x1a\n\tUsersList\x12\r\n\x05users\x18\x04 \x03(\t\"!\n\nReturnCode\x12\x13\n\x0breturn_code\x18\x01 \x01(\x05\x32\xe9\x01\n\nChatServer\x12*\n\nChatStream\x12\x0e.grpc.UserName\x1a\n.grpc.Note0\x01\x12#\n\x08SendNote\x12\n.grpc.Note\x1a\x0b.grpc.Empty\x12)\n\nJoinServer\x12\x0e.grpc.UserName\x1a\x0b.grpc.Empty\x12.\n\x0egetListOfUsers\x12\x0b.grpc.Empty\x1a\x0f.grpc.UsersList\x12/\n\x0b\x43reateGroup\x12\x0e.grpc.UserName\x1a\x10.grpc.ReturnCodeb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nchat.proto\x12\x04grpc\"\x07\n\x05\x45mpty\"\x1c\n\x08UserName\x12\x10\n\x08username\x18\x01 \x01(\t\"3\n\x04Note\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x0c\n\x04\x64\x65st\x18\x03 \x01(\t\"\x1a\n\tUsersList\x12\r\n\x05users\x18\x04 \x03(\t\"!\n\nReturnCode\x12\x13\n\x0breturn_code\x18\x01 \x01(\x05\"!\n\x0eStringResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\"Y\n\x0c\x46ileMetadata\x12\x12\n\nsenderName\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x65st\x18\x02 \x01(\t\x12\x10\n\x08\x66ileName\x18\x03 \x01(\t\x12\x15\n\rfileExtension\x18\x04 \x01(\t\"`\n\x10\x46tpUploadRequest\x12*\n\x0c\x66ileMetadata\x18\x01 \x01(\x0b\x32\x12.grpc.FileMetadataH\x00\x12\x15\n\x0b\x63hunkOfFile\x18\x02 \x01(\x0cH\x00\x42\t\n\x07options\"!\n\x0b\x46tpResponse\x12\x12\n\nchunkReply\x18\x01 \x01(\x0c\x32\xec\x02\n\nChatServer\x12*\n\nChatStream\x12\x0e.grpc.UserName\x1a\n.grpc.Note0\x01\x12#\n\x08SendNote\x12\n.grpc.Note\x1a\x0b.grpc.Empty\x12)\n\nJoinServer\x12\x0e.grpc.UserName\x1a\x0b.grpc.Empty\x12.\n\x0egetListOfUsers\x12\x0b.grpc.Empty\x1a\x0f.grpc.UsersList\x12/\n\x0b\x43reateGroup\x12\x0e.grpc.UserName\x1a\x10.grpc.ReturnCode\x12\x43\n\rFtpUploadFile\x12\x16.grpc.FtpUploadRequest\x1a\x14.grpc.StringResponse\"\x00(\x01\x30\x01\x12<\n\x0f\x46tpDownloadFile\x12\x12.grpc.FileMetadata\x1a\x11.grpc.FtpResponse\"\x00\x30\x01\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'chat_pb2', globals())
@@ -30,6 +30,14 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _USERSLIST._serialized_end=138
   _RETURNCODE._serialized_start=140
   _RETURNCODE._serialized_end=173
-  _CHATSERVER._serialized_start=176
-  _CHATSERVER._serialized_end=409
+  _STRINGRESPONSE._serialized_start=175
+  _STRINGRESPONSE._serialized_end=208
+  _FILEMETADATA._serialized_start=210
+  _FILEMETADATA._serialized_end=299
+  _FTPUPLOADREQUEST._serialized_start=301
+  _FTPUPLOADREQUEST._serialized_end=397
+  _FTPRESPONSE._serialized_start=399
+  _FTPRESPONSE._serialized_end=432
+  _CHATSERVER._serialized_start=435
+  _CHATSERVER._serialized_end=799
 # @@protoc_insertion_point(module_scope)

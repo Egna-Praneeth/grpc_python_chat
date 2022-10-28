@@ -1,10 +1,13 @@
 from concurrent import futures
+import os
+import sys
 
 import grpc
 import time
 
-import proto.chat_pb2 as chat
-import proto.chat_pb2_grpc as rpc
+sys.path.insert(1, './proto')
+import chat_pb2 as chat
+import chat_pb2_grpc as rpc
 
 
 class ChatServer(rpc.ChatServerServicer):  # inheriting here from the protobuf rpc file which is generated
@@ -13,6 +16,7 @@ class ChatServer(rpc.ChatServerServicer):  # inheriting here from the protobuf r
         # List with all the chat history
         self.chats = []
         self.usersList = []
+        self.fileDir = 'uploadedFiles/'
 
     # The stream which will be used to send new messages to clients
     def ChatStream(self, username: chat.UserName, context):
@@ -66,6 +70,58 @@ class ChatServer(rpc.ChatServerServicer):  # inheriting here from the protobuf r
             users_list_obj.users.append(user)
         # users_list_obj.users = self.usersList
         return users_list_obj
+    
+    def FtpUploadFile(self, request_iterator, context):
+        '''
+        upload file to server which client is streaming
+        '''
+        
+        file = ""
+        fileData = bytearray() # temporary variable to store the file
+        senderName = ""
+        dest = ""
+        
+        for requestData in  request_iterator:
+            if requestData.fileMetadata.fileName and requestData.fileMetadata.fileExtension:
+                # if file name is sent, instead of chunk of file, first get the full file name
+                file = f'{requestData.fileMetadata.fileName}{requestData.fileMetadata.fileExtension}'
+                senderName = requestData.fileMetadata.senderName
+                dest = requestData.fileMetadata.dest
+                print(f'[{senderName}] to [##] : ~file_for_[{dest}]~:{file}',end = '', flush=True)  # server log
+                yield chat.StringResponse(message=f'Uploading:')    # response to client  
+                continue
+            print('-',end = '', flush=True)    # server log
+            yield chat.StringResponse(message='-')    # response to client
+            fileData.extend(requestData.chunkOfFile)
+        with open(self.fileDir+'/'+file, 'wb') as f:
+            # write complete data in one go, could also use 'wb+' when in for loop
+            f.write(fileData)
+            # include in chats[] metadata of file for download
+            messageForDest = f'/file:{file}'    # sending filename to dest client in chat. upto Dest to trigger download
+            print('Uploaded!')    # server log
+            self.chats.append(chat.Note(name=senderName, message=messageForDest,dest=dest))
+            # print('2:',chat.Note(name=senderName, message=messageForDest,dest=dest)) # debug stmt
+            yield chat.StringResponse(message=f'SUCCESS')
+        
+    def FtpDownloadFile(self, request, context):
+        '''
+        download a file from server, given file name/path
+        '''
+        chunk_size = 1024
+        filePath = f'{self.fileDir}/{request.fileName}{request.fileExtension}'
+        print(f'file:{filePath}, requested by client:{request.dest} for download')
+        # TODO commenting
+        if os.path.exists(filePath):
+            print(f'requesting file:{filePath}')
+            with open(filePath, mode="rb") as f:
+                while True:
+                    chunkOfFile = f.read(chunk_size)
+                    if chunkOfFile:
+                        fileResponse = chat.FtpResponse(chunkReply=chunkOfFile)
+                        yield fileResponse
+                    else:  # The chunk was empty, which means we're at the end of the file
+                        return
+
 
 if __name__ == '__main__':
     port = 11912  # a random port for the server to run on

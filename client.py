@@ -1,9 +1,12 @@
+import os
+import sys
 import threading
 
 import grpc
 
-import proto.chat_pb2 as chat
-import proto.chat_pb2_grpc as rpc
+sys.path.insert(1, './proto')
+import chat_pb2 as chat
+import chat_pb2_grpc as rpc
 
 address = 'localhost'
 port = 11912
@@ -28,10 +31,7 @@ class Client:
         self.menu()
 
     def menu(self):
-        print('''Hi, this is the menu page. The available options are: 
-1. Chat 
-2. Exit
-Please enter your choice (number):''')
+        print('''Hi, this is the menu page. The available options are: \n1. Chat \n2. ExitPlease enter your choice (number):''')
         option = int(input())
         if option == 2: 
             quit()
@@ -57,6 +57,10 @@ Please enter your choice (number):''')
         if len(self.active_users[self.end_user]) > 0:
             for msg in self.active_users[self.end_user]:
                 print("{}: {}".format(msg.name, msg.message))
+                print('Am I here 0:',msg,msg.message.startswith("/file:"))
+                if(msg.message.startswith("/file:")):
+                    print('AM I HERE?')
+                    # self.handleDownloadFile(msg) # TODO make it async? thread/pool, but it might hamper other printed msgs
         
         while True:
             message = input("{}(Me): ".format(self.username))
@@ -64,8 +68,15 @@ Please enter your choice (number):''')
                 self.end_user = None
                 self.menu()
                 return 
+            if message.startswith("/file:"):
+                # print('Uploading section:') #   debug stmt
+                responses = self.conn.FtpUploadFile(self.readIterfile(message))
+                for response in responses:
+                    print(response.message,end = '', flush=True) #   status responses to client 
+                print()
+                continue
             if message != '':
-                note = chat.Note()  # create protobug message (called Note)
+                note = chat.Note()  # create protobuf message (called Note)
                 note.name = self.username  # set the username
                 note.message = message  # set the actual message of the note
                 note.dest = self.end_user
@@ -78,14 +89,19 @@ Please enter your choice (number):''')
         This method will be ran in a separate thread as the main/ui thread, because the for-in call is blocking
         when waiting for new messages
         """
-        userName = chat.UserName();
+        userName = chat.UserName()
         userName.username = self.username
         for note in self.conn.ChatStream(userName):  # this line will wait for new messages from the server!
             # print("R[{}] {}".format(note.name, note.message))  # debugging statement
+            print('here2',note.message.startswith("/file:"))
             if note.name == self.end_user:
                 LINE_CLEAR = '\x1b[2K' 
                 print('\r', end=LINE_CLEAR)
-                print("{}: {}\n{}(Me): ".format(note.name, note.message,self.username), end = '')
+                print("{}: {}\n{}(Me): ".format(note.name, note.message,self.username), end = '')   #TODO: can check flush=True, if req!
+            
+            if note.message.startswith("/file:"):
+                # print('dwnldng file')
+                self.handleDownloadFile(note) # TODO make it async? thread/pool, but it might hamper other printed msgs
             else:
                 if note.name in self.active_users:
                     self.active_users[note.name].append(note)
@@ -96,7 +112,7 @@ Please enter your choice (number):''')
             # self.chat_list.insert(END, "[{}] {}\n".format(note.name, note.message))  # add the message to the UI
 
     def join_chatspace(self):
-        userName = chat.UserName();
+        userName = chat.UserName()
         userName.username = self.username
         self.conn.JoinServer(userName)
         print("Joined the userspace")
@@ -116,6 +132,60 @@ Please enter your choice (number):''')
                 self.active_users[user] = []        
                 print(str(i) + ". " + user)
             i = i + 1
+            
+    def readIterfile(self, fileString, chunkSize=1024):
+        filePath = fileString[6:]
+        fileArr = filePath.rsplit("/",1) # read after "/file:"
+        split_data = os.path.splitext(fileArr[-1])
+        fileName = split_data[0]
+        fileExtension = split_data[1]
+        # print(f'fileName={fileName},fileExtension={fileExtension}, {self.username},{self.end_user}')
+        # metadata = chat.FileMetadata(fileName=fileName)
+        metadata = chat.FileMetadata(senderName=self.username,dest=self.end_user,fileName=fileName, fileExtension=fileExtension)
+        # print(f'metadata:{metadata}')
+        # first send off the file name(with extension) of the file we are reading iteratively, to upload
+        
+        yield chat.FtpUploadRequest(fileMetadata=metadata)
+        # res = chat.FtpUploadRequest(fileMetadata=metadata)
+        # print(f'res:{res}')
+        # yield res
+        f = None
+        try:
+            f = open(filePath, mode="rb")
+        except FileNotFoundError:
+            print(f'Unable to find/open file:{filePath}')
+            return
+        
+        # with open(filePath, mode="rb") as f:
+        # print('file opened')
+        while True:
+            chunkOfFile = f.read(chunkSize)
+            # print('a')
+            if chunkOfFile:
+                # now return the file data in chunks
+                # print('b')
+                entry_request = chat.FtpUploadRequest(chunkOfFile=chunkOfFile)
+                # print(f'yielding {entry_request}')
+                yield entry_request
+            else:  # The chunk was empty, which means we're at the end of the file
+                return
+
+    def handleDownloadFile(self, note):
+        # this should be non blocking/async?
+        
+        # TODO : PRINT STATEMENTS and STREAM STATUS
+        # TODO : NOT A GOOD WAY TO USE CHAT MESSAGE TEXT TO INITIATE DOWNLOAD, CAN'T SEND ANYTHING OTHER THAN EXACT "/file:..."
+
+        split_data = os.path.splitext(note.message[6:])  # read after "/file:"
+        fileName = split_data[0]
+        fileExtension = split_data[1]
+        filePath = f'clientFiles/{fileName}{fileExtension}'    # TODO destination path
+        # print(f'handleDownload:{filePath}')
+        for entry_response in self.conn.FtpDownloadFile(chat.FileMetadata(senderName=note.name, dest=note.dest, fileName=fileName, fileExtension=fileExtension)):
+            # print(chat.FileMetadata(senderName=note.name, dest=note.dest, fileName=fileName, fileExtension=fileExtension))
+            with open(filePath, mode="ab") as f:
+                # print(entry_response.chunkReply)
+                f.write(entry_response.chunkReply)
 
 if __name__ == '__main__':
     #root = Tk()  # I just used a very simple Tk window for the chat UI, this can be replaced by anything
