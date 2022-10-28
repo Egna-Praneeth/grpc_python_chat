@@ -51,7 +51,7 @@ Please enter your choice (number):''')
             return 
         if self.end_user not in self.active_users:
             print("Please enter the correct username:")
-            chat()
+            self.chat()
             return
 
         if len(self.active_users[self.end_user]) > 0:
@@ -87,7 +87,7 @@ Please enter your choice (number):''')
                 print('\r', end=LINE_CLEAR)
                 print("{}: {}\n{}(Me): ".format(note.name, note.message,self.username), end = '')
             else:
-                if note.dest in self.active_users:
+                if note.name in self.active_users:
                     self.active_users[note.name].append(note)
                 else:
                     self.active_users[note.name] = []
