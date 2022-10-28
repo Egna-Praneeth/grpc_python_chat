@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nchat.proto\x12\x04grpc\"\x07\n\x05\x45mpty\"\x1c\n\x08UserName\x12\x10\n\x08username\x18\x01 \x01(\t\"3\n\x04Note\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x0c\n\x04\x64\x65st\x18\x03 \x01(\t\"\x1a\n\tUsersList\x12\r\n\x05users\x18\x04 \x03(\t2\xb8\x01\n\nChatServer\x12*\n\nChatStream\x12\x0e.grpc.UserName\x1a\n.grpc.Note0\x01\x12#\n\x08SendNote\x12\n.grpc.Note\x1a\x0b.grpc.Empty\x12)\n\nJoinServer\x12\x0e.grpc.UserName\x1a\x0b.grpc.Empty\x12.\n\x0egetListOfUsers\x12\x0b.grpc.Empty\x1a\x0f.grpc.UsersListb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nchat.proto\x12\x04grpc\"\x07\n\x05\x45mpty\"\x1c\n\x08UserName\x12\x10\n\x08username\x18\x01 \x01(\t\"3\n\x04Note\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x0c\n\x04\x64\x65st\x18\x03 \x01(\t\"\x1a\n\tUsersList\x12\r\n\x05users\x18\x04 \x03(\t\"!\n\nReturnCode\x12\x13\n\x0breturn_code\x18\x01 \x01(\x05\x32\xe9\x01\n\nChatServer\x12*\n\nChatStream\x12\x0e.grpc.UserName\x1a\n.grpc.Note0\x01\x12#\n\x08SendNote\x12\n.grpc.Note\x1a\x0b.grpc.Empty\x12)\n\nJoinServer\x12\x0e.grpc.UserName\x1a\x0b.grpc.Empty\x12.\n\x0egetListOfUsers\x12\x0b.grpc.Empty\x1a\x0f.grpc.UsersList\x12/\n\x0b\x43reateGroup\x12\x0e.grpc.UserName\x1a\x10.grpc.ReturnCodeb\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'chat_pb2', globals())
@@ -28,6 +28,8 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _NOTE._serialized_end=110
   _USERSLIST._serialized_start=112
   _USERSLIST._serialized_end=138
-  _CHATSERVER._serialized_start=141
-  _CHATSERVER._serialized_end=325
+  _RETURNCODE._serialized_start=140
+  _RETURNCODE._serialized_end=173
+  _CHATSERVER._serialized_start=176
+  _CHATSERVER._serialized_end=409
 # @@protoc_insertion_point(module_scope)

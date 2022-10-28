@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from . import chat_pb2 as chat__pb2
+import chat_pb2 as chat__pb2
 
 
 class ChatServerStub(object):
@@ -34,6 +34,11 @@ class ChatServerStub(object):
                 request_serializer=chat__pb2.Empty.SerializeToString,
                 response_deserializer=chat__pb2.UsersList.FromString,
                 )
+        self.CreateGroup = channel.unary_unary(
+                '/grpc.ChatServer/CreateGroup',
+                request_serializer=chat__pb2.UserName.SerializeToString,
+                response_deserializer=chat__pb2.ReturnCode.FromString,
+                )
 
 
 class ChatServerServicer(object):
@@ -64,6 +69,12 @@ class ChatServerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def CreateGroup(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_ChatServerServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -86,6 +97,11 @@ def add_ChatServerServicer_to_server(servicer, server):
                     servicer.getListOfUsers,
                     request_deserializer=chat__pb2.Empty.FromString,
                     response_serializer=chat__pb2.UsersList.SerializeToString,
+            ),
+            'CreateGroup': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateGroup,
+                    request_deserializer=chat__pb2.UserName.FromString,
+                    response_serializer=chat__pb2.ReturnCode.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -162,5 +178,22 @@ class ChatServer(object):
         return grpc.experimental.unary_unary(request, target, '/grpc.ChatServer/getListOfUsers',
             chat__pb2.Empty.SerializeToString,
             chat__pb2.UsersList.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def CreateGroup(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.ChatServer/CreateGroup',
+            chat__pb2.UserName.SerializeToString,
+            chat__pb2.ReturnCode.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

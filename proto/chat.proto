@@ -18,6 +18,9 @@ message UsersList {
     repeated string users = 4;
 }
 
+message ReturnCode {
+    int32 return_code = 1;
+}
 
 service ChatServer {
     // This bi-directional stream makes it possible to send and receive Notes between 2 persons
@@ -25,4 +28,5 @@ service ChatServer {
     rpc SendNote (Note) returns (Empty);
     rpc JoinServer(UserName) returns (Empty);
     rpc getListOfUsers(Empty) returns (UsersList);
+    rpc CreateGroup(UserName) returns (ReturnCode);
 }
