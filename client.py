@@ -5,8 +5,8 @@ import threading
 import grpc
 
 sys.path.insert(1, './proto')
-from . import chat_pb2 as chat
-from . import chat_pb2_grpc as rpc
+import chat_pb2 as chat
+import chat_pb2_grpc as rpc
 
 address = 'localhost'
 port = 11912
@@ -31,7 +31,7 @@ class Client:
         self.menu()
 
     def menu(self):
-        print('''Hi, this is the menu page. The available options are: \n1. Chat \n2. ExitPlease enter your choice (number):''')
+        print('''Hi, this is the menu page. The available options are: \n1. Chat \n2. Exit\nPlease enter your choice (number):''')
         option = int(input())
         if option == 2: 
             quit()
@@ -57,10 +57,10 @@ class Client:
         if len(self.active_users[self.end_user]) > 0:
             for msg in self.active_users[self.end_user]:
                 print("{}: {}".format(msg.name, msg.message))
-                # print('Am I here 0:',msg,msg.message.startswith("/file:"))
-                # if(msg.message.startswith("/file:")):
-                #     print('AM I HERE?')
-                #     self.handleDownloadFile(msg) # TODO make it async? thread/pool, but it might hamper other printed msgs
+                if msg.message.startswith("/file:"): # TODO CHECK IF THIS SNIPPET IS PLACED CORRECTLY
+                    # print('dwnldng file')
+                    self.handleDownloadFile(msg) # TODO make it async? thread/pool, but it might hamper other printed msgs
+            
         
         while True:
             message = input("{}(Me): ".format(self.username))
@@ -98,11 +98,11 @@ class Client:
             if note.name == self.end_user:
                 LINE_CLEAR = '\x1b[2K' 
                 print('\r', end=LINE_CLEAR)
-                print("{}: {}\n{}(Me): ".format(note.name, note.message,self.username), end = '')   #TODO: can check flush=True, if req!
+                print("{}: {}\n{}(Me): ".format(note.name, note.message,self.username), end = '')   # TODO can check flush=True, if req!
+                if note.message.startswith("/file:"): # TODO CHECK IF THIS SNIPPET IS PLACED CORRECTLY
+                    # print('dwnldng file')
+                    self.handleDownloadFile(note) # TODO make it async? thread/pool, but it might hamper other printed msgs
             
-            if note.message.startswith("/file:"): # TODO CHECK IF THIS SNIPPET IS PLACED CORRECTLY
-                # print('dwnldng file')
-                self.handleDownloadFile(note) # TODO make it async? thread/pool, but it might hamper other printed msgs
             else:
                 if note.name in self.active_users:
                     self.active_users[note.name].append(note)
@@ -197,7 +197,8 @@ class Client:
                 # print(entry_response.chunkReply)
                 # print('-', end='',flush=True)
             f.write(entry_response.chunkReply)
-        print()
+        # print()
+        print("\n{}(Me): ".format(self.username), end = '', flush=True)
         f.close()
 
 if __name__ == '__main__':
