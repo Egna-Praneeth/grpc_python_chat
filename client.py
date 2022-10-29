@@ -236,7 +236,9 @@ class Client:
         users_list = []
         
         if print_options:
-            users_list = self.conn.getListOfUsers(chat.Empty())
+            my_username = chat.UserName()
+            my_username.username = self.username
+            users_list = self.conn.getListOfUsers(my_username)
             print("Below is the list of active users: ")
             for user in users_list.users:
                 if user == self.username:

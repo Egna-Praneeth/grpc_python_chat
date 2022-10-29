@@ -96,11 +96,11 @@ class ChatServer(rpc.ChatServerServicer):  # inheriting here from the protobuf r
         print(u.username + ' is online.')
         return chat.Empty()
 
-    def getListOfUsers(self,request_iterator,context):
+    def getListOfUsers(self, u: chat.UserName,context):
         users_list_obj = chat.UsersList()
         for user in self.usersList:
             users_list_obj.users.append(user)
-        for group in self.groupDetails:
+        for group in self.userGroups[u.username]:
             users_list_obj.users.append(group)
         return users_list_obj
 

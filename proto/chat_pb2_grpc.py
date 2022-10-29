@@ -46,7 +46,7 @@ class ChatServerStub(object):
                 )
         self.getListOfUsers = channel.unary_unary(
                 '/grpc.ChatServer/getListOfUsers',
-                request_serializer=chat__pb2.Empty.SerializeToString,
+                request_serializer=chat__pb2.UserName.SerializeToString,
                 response_deserializer=chat__pb2.UsersList.FromString,
                 )
         self.getListOfOnlyUsers = channel.unary_unary(
@@ -175,7 +175,7 @@ def add_ChatServerServicer_to_server(servicer, server):
             ),
             'getListOfUsers': grpc.unary_unary_rpc_method_handler(
                     servicer.getListOfUsers,
-                    request_deserializer=chat__pb2.Empty.FromString,
+                    request_deserializer=chat__pb2.UserName.FromString,
                     response_serializer=chat__pb2.UsersList.SerializeToString,
             ),
             'getListOfOnlyUsers': grpc.unary_unary_rpc_method_handler(
@@ -322,7 +322,7 @@ class ChatServer(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/grpc.ChatServer/getListOfUsers',
-            chat__pb2.Empty.SerializeToString,
+            chat__pb2.UserName.SerializeToString,
             chat__pb2.UsersList.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

@@ -72,7 +72,7 @@ service ChatServer {
     rpc SendNote (Note) returns (Empty);
 
     rpc JoinServer(UserName) returns (Empty);
-    rpc getListOfUsers(Empty) returns (UsersList);
+    rpc getListOfUsers(UserName) returns (UsersList);
     rpc getListOfOnlyUsers(Empty) returns (UsersList);
     rpc CreateGroup(Group) returns (Empty);
     rpc FtpUploadFile(stream FtpUploadRequest) returns (stream StringResponse) {} // stream respnse to recive status of upload
