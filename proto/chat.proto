@@ -57,6 +57,7 @@ message FtpResponse {
 message Group {
     string GroupName = 1;
     repeated string users = 2;
+    string username = 3;
 }
 message BoolResponse{
     bool response = 1;
@@ -72,9 +73,8 @@ service ChatServer {
 
     rpc JoinServer(UserName) returns (Empty);
     rpc getListOfUsers(Empty) returns (UsersList);
-
-    rpc CreateGroup(Group) returns (ReturnCode);
-    
+    rpc getListOfOnlyUsers(Empty) returns (UsersList);
+    rpc CreateGroup(Group) returns (Empty);
     rpc FtpUploadFile(stream FtpUploadRequest) returns (stream StringResponse) {} // stream respnse to recive status of upload
     rpc FtpDownloadFile(FileMetadata) returns (stream FtpResponse) {} // could be just username? and send his files?
 }
