@@ -6,8 +6,8 @@ from tkinter import simpledialog
 import grpc
 
 sys.path.insert(1, './proto')
-import chat_pb2 as chat
-import chat_pb2_grpc as rpc
+from . import chat_pb2 as chat
+from . import chat_pb2_grpc as rpc
 
 address = 'localhost'
 port = 11912
