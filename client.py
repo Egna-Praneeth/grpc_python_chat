@@ -57,10 +57,10 @@ class Client:
         if len(self.active_users[self.end_user]) > 0:
             for msg in self.active_users[self.end_user]:
                 print("{}: {}".format(msg.name, msg.message))
-                print('Am I here 0:',msg,msg.message.startswith("/file:"))
-                if(msg.message.startswith("/file:")):
-                    print('AM I HERE?')
-                    # self.handleDownloadFile(msg) # TODO make it async? thread/pool, but it might hamper other printed msgs
+                # print('Am I here 0:',msg,msg.message.startswith("/file:"))
+                # if(msg.message.startswith("/file:")):
+                #     print('AM I HERE?')
+                #     self.handleDownloadFile(msg) # TODO make it async? thread/pool, but it might hamper other printed msgs
         
         while True:
             message = input("{}(Me): ".format(self.username))
@@ -72,8 +72,9 @@ class Client:
                 # print('Uploading section:') #   debug stmt
                 responses = self.conn.FtpUploadFile(self.readIterfile(message))
                 for response in responses:
+                    # print(response.message)
                     print(response.message,end = '', flush=True) #   status responses to client 
-                print()
+                print('\n')
                 continue
             if message != '':
                 note = chat.Note()  # create protobuf message (called Note)
@@ -93,13 +94,13 @@ class Client:
         userName.username = self.username
         for note in self.conn.ChatStream(userName):  # this line will wait for new messages from the server!
             # print("R[{}] {}".format(note.name, note.message))  # debugging statement
-            print('here2',note.message.startswith("/file:"))
+            # print('here2',note.message.startswith("/file:"))
             if note.name == self.end_user:
                 LINE_CLEAR = '\x1b[2K' 
                 print('\r', end=LINE_CLEAR)
                 print("{}: {}\n{}(Me): ".format(note.name, note.message,self.username), end = '')   #TODO: can check flush=True, if req!
             
-            if note.message.startswith("/file:"):
+            if note.message.startswith("/file:"): # TODO CHECK IF THIS SNIPPET IS PLACED CORRECTLY
                 # print('dwnldng file')
                 self.handleDownloadFile(note) # TODO make it async? thread/pool, but it might hamper other printed msgs
             else:
@@ -168,6 +169,7 @@ class Client:
                 # print(f'yielding {entry_request}')
                 yield entry_request
             else:  # The chunk was empty, which means we're at the end of the file
+                f.close()
                 return
 
     def handleDownloadFile(self, note):
@@ -181,11 +183,22 @@ class Client:
         fileExtension = split_data[1]
         filePath = f'clientFiles/{fileName}{fileExtension}'    # TODO destination path
         # print(f'handleDownload:{filePath}')
+        
+        f=None
+        try:
+            f = open(filePath, mode="ab")
+        except FileNotFoundError:
+            print(f'Unable to find/open/create file:{filePath}')
+            return
         for entry_response in self.conn.FtpDownloadFile(chat.FileMetadata(senderName=note.name, dest=note.dest, fileName=fileName, fileExtension=fileExtension)):
             # print(chat.FileMetadata(senderName=note.name, dest=note.dest, fileName=fileName, fileExtension=fileExtension))
-            with open(filePath, mode="ab") as f:
+            print(entry_response.progressReply,end='',flush=True)  # client log
+            # with open(filePath, mode="ab") as f:
                 # print(entry_response.chunkReply)
-                f.write(entry_response.chunkReply)
+                # print('-', end='',flush=True)
+            f.write(entry_response.chunkReply)
+        print()
+        f.close()
 
 if __name__ == '__main__':
     #root = Tk()  # I just used a very simple Tk window for the chat UI, this can be replaced by anything

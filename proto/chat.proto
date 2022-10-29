@@ -46,6 +46,7 @@ message FtpUploadRequest {
 // downloading stream of file thro
 message FtpResponse {
   bytes chunkReply = 1;
+  string progressReply = 2;
 }
 
 service ChatServer {
