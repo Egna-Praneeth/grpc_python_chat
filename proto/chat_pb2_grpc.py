@@ -14,6 +14,21 @@ class ChatServerStub(object):
         Args:
             channel: A grpc.Channel.
         """
+        self.CheckUniqueUser = channel.unary_unary(
+                '/grpc.ChatServer/CheckUniqueUser',
+                request_serializer=chat__pb2.UserName.SerializeToString,
+                response_deserializer=chat__pb2.BoolResponse.FromString,
+                )
+        self.Register = channel.unary_unary(
+                '/grpc.ChatServer/Register',
+                request_serializer=chat__pb2.UsernamePassword.SerializeToString,
+                response_deserializer=chat__pb2.Empty.FromString,
+                )
+        self.CheckUserExists = channel.unary_unary(
+                '/grpc.ChatServer/CheckUserExists',
+                request_serializer=chat__pb2.UsernamePassword.SerializeToString,
+                response_deserializer=chat__pb2.BoolResponse.FromString,
+                )
         self.ChatStream = channel.unary_stream(
                 '/grpc.ChatServer/ChatStream',
                 request_serializer=chat__pb2.UserName.SerializeToString,
@@ -36,7 +51,7 @@ class ChatServerStub(object):
                 )
         self.CreateGroup = channel.unary_unary(
                 '/grpc.ChatServer/CreateGroup',
-                request_serializer=chat__pb2.UserName.SerializeToString,
+                request_serializer=chat__pb2.Group.SerializeToString,
                 response_deserializer=chat__pb2.ReturnCode.FromString,
                 )
         self.FtpUploadFile = channel.stream_stream(
@@ -54,9 +69,26 @@ class ChatServerStub(object):
 class ChatServerServicer(object):
     """Missing associated documentation comment in .proto file."""
 
+    def CheckUniqueUser(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Register(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CheckUserExists(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def ChatStream(self, request, context):
-        """This bi-directional stream makes it possible to send and receive Notes between 2 persons
-        """
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -100,6 +132,21 @@ class ChatServerServicer(object):
 
 def add_ChatServerServicer_to_server(servicer, server):
     rpc_method_handlers = {
+            'CheckUniqueUser': grpc.unary_unary_rpc_method_handler(
+                    servicer.CheckUniqueUser,
+                    request_deserializer=chat__pb2.UserName.FromString,
+                    response_serializer=chat__pb2.BoolResponse.SerializeToString,
+            ),
+            'Register': grpc.unary_unary_rpc_method_handler(
+                    servicer.Register,
+                    request_deserializer=chat__pb2.UsernamePassword.FromString,
+                    response_serializer=chat__pb2.Empty.SerializeToString,
+            ),
+            'CheckUserExists': grpc.unary_unary_rpc_method_handler(
+                    servicer.CheckUserExists,
+                    request_deserializer=chat__pb2.UsernamePassword.FromString,
+                    response_serializer=chat__pb2.BoolResponse.SerializeToString,
+            ),
             'ChatStream': grpc.unary_stream_rpc_method_handler(
                     servicer.ChatStream,
                     request_deserializer=chat__pb2.UserName.FromString,
@@ -122,7 +169,7 @@ def add_ChatServerServicer_to_server(servicer, server):
             ),
             'CreateGroup': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateGroup,
-                    request_deserializer=chat__pb2.UserName.FromString,
+                    request_deserializer=chat__pb2.Group.FromString,
                     response_serializer=chat__pb2.ReturnCode.SerializeToString,
             ),
             'FtpUploadFile': grpc.stream_stream_rpc_method_handler(
@@ -144,6 +191,57 @@ def add_ChatServerServicer_to_server(servicer, server):
  # This class is part of an EXPERIMENTAL API.
 class ChatServer(object):
     """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def CheckUniqueUser(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.ChatServer/CheckUniqueUser',
+            chat__pb2.UserName.SerializeToString,
+            chat__pb2.BoolResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def Register(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.ChatServer/Register',
+            chat__pb2.UsernamePassword.SerializeToString,
+            chat__pb2.Empty.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def CheckUserExists(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/grpc.ChatServer/CheckUserExists',
+            chat__pb2.UsernamePassword.SerializeToString,
+            chat__pb2.BoolResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def ChatStream(request,
@@ -225,7 +323,7 @@ class ChatServer(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/grpc.ChatServer/CreateGroup',
-            chat__pb2.UserName.SerializeToString,
+            chat__pb2.Group.SerializeToString,
             chat__pb2.ReturnCode.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

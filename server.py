@@ -17,6 +17,7 @@ class ChatServer(rpc.ChatServerServicer):  # inheriting here from the protobuf r
         self.chats = []
         self.usersList = []
         self.fileDir = 'uploadedFiles/'
+        self.userData = {}
 
     # The stream which will be used to send new messages to clients
     def ChatStream(self, username: chat.UserName, context):
@@ -53,6 +54,29 @@ class ChatServer(rpc.ChatServerServicer):  # inheriting here from the protobuf r
         
         self.chats.append(request)
         return chat.Empty()  # something needs to be returned required by protobuf language, we just return empty msg
+
+    def CheckUniqueUser(self, u : chat.UserName, context):
+        boolresp = chat.BoolResponse()
+
+        if u.username in self.userData:
+            boolresp.response = False
+            return boolresp
+        else:
+            boolresp.response = True
+            return boolresp
+
+    def Register(self, reg: chat.UsernamePassword, context):
+        self.userData[reg.username] = reg.password
+        return chat.Empty()
+    
+    def CheckUserExists(self, details : chat.UsernamePassword, context):
+        boolresp = chat.BoolResponse()
+        if details.username in self.userData:
+            if self.userData[details.username] == details.password:
+                boolresp.response = True
+                return boolresp
+        boolresp.response = False
+        return boolresp
 
     def JoinServer(self, u: chat.UserName,context):
         self.usersList.append(u.username)

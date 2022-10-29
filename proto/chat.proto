@@ -8,6 +8,11 @@ message Empty {}
 message UserName{
     string username = 1;
 }
+
+message UsernamePassword {
+    string username = 1;
+    string password = 2;
+}
 message Note {
     string name = 1;
     string message = 2;
@@ -53,14 +58,23 @@ message Group {
     string GroupName = 1;
     repeated string users = 2;
 }
+message BoolResponse{
+    bool response = 1;
+}
 
 service ChatServer {
-    // This bi-directional stream makes it possible to send and receive Notes between 2 persons
+    rpc CheckUniqueUser(UserName) returns (BoolResponse);
+    rpc Register(UsernamePassword) returns (Empty);
+    rpc CheckUserExists(UsernamePassword) returns (BoolResponse);
+
     rpc ChatStream (UserName) returns (stream Note);
     rpc SendNote (Note) returns (Empty);
+
     rpc JoinServer(UserName) returns (Empty);
     rpc getListOfUsers(Empty) returns (UsersList);
+
     rpc CreateGroup(Group) returns (ReturnCode);
+    
     rpc FtpUploadFile(stream FtpUploadRequest) returns (stream StringResponse) {} // stream respnse to recive status of upload
     rpc FtpDownloadFile(FileMetadata) returns (stream FtpResponse) {} // could be just username? and send his files?
 }

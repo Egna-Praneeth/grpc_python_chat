@@ -1,3 +1,4 @@
+from ast import Return
 import os
 import sys
 import threading
@@ -9,26 +10,88 @@ import chat_pb2 as chat
 import chat_pb2_grpc as rpc
 
 address = 'localhost'
+# address ='54.235.29.223'
 port = 11912
 
 
 class Client:
 
-    def __init__(self, u: str):
+    def __init__(self):
         # the frame to put ui components on
         # self.window = window
-        self.username = u
+        self.username = None
         self.end_user = None
         self.active_users = {}
         # create a gRPC channel + stubrpc.ChatServerStub
         channel = grpc.insecure_channel(address + ':' + str(port))
         self.conn = rpc.ChatServerStub(channel)
         # create new listening thread for when new message streams come in
-        threading.Thread(target=self.__listen_for_messages, daemon=True).start()
         
+        
+        self.pre_menu()
+        #below functions means the user is active. 
         self.join_chatspace()
+        threading.Thread(target=self.__listen_for_messages, daemon=True).start()
         print("You are connected to the chat server")
         self.menu()
+
+
+    def pre_menu(self):
+        while True:
+            print("Hi, welcome to the chatspace!!!!")
+            choice = input('''Do you want to\n1.Register\n2.LogIn\n3.Quit\n Indicate via entering the number:''')
+            choice = int(choice)
+            if choice == 1:
+                self.register()
+                break
+            elif choice == 2:
+                self.logIn()
+                break
+            elif choice == 3:
+                print("Quitting")
+                quit()
+                break
+            else:
+                print("Please select a valid option")
+        return
+
+    def register(self):
+        print("REGISTER: Please choose an username and a password: ")
+        username_selected = input("username:")
+        password_selected = input("password:")
+        # check uniqueness of username
+        user = chat.UserName()
+        user.username = username_selected
+        resp = self.conn.CheckUniqueUser(user)
+        if not resp.response:
+            print("Username already taken, please choose another one:")
+            self.register()
+            return 
+        # register user
+        new_user = chat.UsernamePassword()
+        new_user.username = username_selected
+        new_user.password = password_selected
+        resp = self.conn.Register(new_user)
+        print("Successfully registered, you can logIn now")
+        self.logIn()
+    
+    def logIn(self):
+        #Take input
+        print("LOGIN PAGE: Please enter you username and password: ")
+        username_selected = input("username:")
+        password_selected = input("password:")
+        user_details = chat.UsernamePassword()
+        user_details.username = username_selected
+        user_details.password = password_selected
+        resp = self.conn.CheckUserExists(user_details)
+        #checkUserExists()
+        #if yes. joinserver call, if no. Say details wrong, please reenter
+        if resp.response :
+            print("logging in....")
+            self.username = user_details.username
+        else:
+            print("Details entered are incorrect. Please check your username and password")
+            self.pre_menu()
 
     def menu(self):
         print('''Hi, this is the menu page. The available options are: \n1. Chat \n2. Exit\nPlease enter your choice (number):''')
@@ -202,15 +265,4 @@ class Client:
         f.close()
 
 if __name__ == '__main__':
-    #root = Tk()  # I just used a very simple Tk window for the chat UI, this can be replaced by anything
-    #frame = Frame(root, width=300, height=300)
-    #frame.pack()
-    #root.withdraw()
-    username = None
-    while username is None:
-        # retrieve a username so we can distinguish all the different clients
-        #username = simpledialog.askstring("Username", "What's your username?", parent=root)
-        username = input("Please enter your username: ")
-    # root.deiconify()  # don't remember why this was needed anymore...
-    # c = Client(username, frame)  # this starts a client and thus a thread which keeps connection to server open
-    c = Client(username)
+    c = Client()
