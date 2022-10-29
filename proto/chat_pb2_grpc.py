@@ -39,6 +39,16 @@ class ChatServerStub(object):
                 request_serializer=chat__pb2.UserName.SerializeToString,
                 response_deserializer=chat__pb2.ReturnCode.FromString,
                 )
+        self.FtpUploadFile = channel.stream_stream(
+                '/grpc.ChatServer/FtpUploadFile',
+                request_serializer=chat__pb2.FtpUploadRequest.SerializeToString,
+                response_deserializer=chat__pb2.StringResponse.FromString,
+                )
+        self.FtpDownloadFile = channel.unary_stream(
+                '/grpc.ChatServer/FtpDownloadFile',
+                request_serializer=chat__pb2.FileMetadata.SerializeToString,
+                response_deserializer=chat__pb2.FtpResponse.FromString,
+                )
 
 
 class ChatServerServicer(object):
@@ -75,6 +85,18 @@ class ChatServerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def FtpUploadFile(self, request_iterator, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def FtpDownloadFile(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_ChatServerServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -102,6 +124,16 @@ def add_ChatServerServicer_to_server(servicer, server):
                     servicer.CreateGroup,
                     request_deserializer=chat__pb2.UserName.FromString,
                     response_serializer=chat__pb2.ReturnCode.SerializeToString,
+            ),
+            'FtpUploadFile': grpc.stream_stream_rpc_method_handler(
+                    servicer.FtpUploadFile,
+                    request_deserializer=chat__pb2.FtpUploadRequest.FromString,
+                    response_serializer=chat__pb2.StringResponse.SerializeToString,
+            ),
+            'FtpDownloadFile': grpc.unary_stream_rpc_method_handler(
+                    servicer.FtpDownloadFile,
+                    request_deserializer=chat__pb2.FileMetadata.FromString,
+                    response_serializer=chat__pb2.FtpResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -195,5 +227,39 @@ class ChatServer(object):
         return grpc.experimental.unary_unary(request, target, '/grpc.ChatServer/CreateGroup',
             chat__pb2.UserName.SerializeToString,
             chat__pb2.ReturnCode.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def FtpUploadFile(request_iterator,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.stream_stream(request_iterator, target, '/grpc.ChatServer/FtpUploadFile',
+            chat__pb2.FtpUploadRequest.SerializeToString,
+            chat__pb2.StringResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def FtpDownloadFile(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_stream(request, target, '/grpc.ChatServer/FtpDownloadFile',
+            chat__pb2.FileMetadata.SerializeToString,
+            chat__pb2.FtpResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

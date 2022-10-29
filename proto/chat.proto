@@ -22,6 +22,33 @@ message ReturnCode {
     int32 return_code = 1;
 }
 
+// to notify client with some custom status, etc
+message StringResponse{
+    string message = 1;
+}
+
+message FileMetadata {
+  string senderName = 1;
+  string dest = 2;
+  string fileName = 3;
+  string fileExtension = 4; // ex: '.jpg'
+//   string FilePackets = 5; // filesize(KB)/1024 
+} 
+
+// oneof: like union
+message FtpUploadRequest {
+  oneof options {
+    FileMetadata fileMetadata = 1;
+    bytes chunkOfFile = 2;
+  }
+}
+
+// downloading stream of file thro
+message FtpResponse {
+  bytes chunkReply = 1;
+  string progressReply = 2;
+}
+
 service ChatServer {
     // This bi-directional stream makes it possible to send and receive Notes between 2 persons
     rpc ChatStream (UserName) returns (stream Note);
@@ -29,4 +56,6 @@ service ChatServer {
     rpc JoinServer(UserName) returns (Empty);
     rpc getListOfUsers(Empty) returns (UsersList);
     rpc CreateGroup(UserName) returns (ReturnCode);
+    rpc FtpUploadFile(stream FtpUploadRequest) returns (stream StringResponse) {} // stream respnse to recive status of upload
+    rpc FtpDownloadFile(FileMetadata) returns (stream FtpResponse) {} // could be just username? and send his files?
 }

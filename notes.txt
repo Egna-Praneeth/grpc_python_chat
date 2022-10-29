@@ -36,3 +36,7 @@ Issues:
         =================
         When sleeping, you can type something, even this will be printed. 
         (How to flush stdin)
+
+Commands:
+    /file:resources/scrnsht.png
+    /file:scrnsht.png
