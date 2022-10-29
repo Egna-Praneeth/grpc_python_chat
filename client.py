@@ -94,17 +94,17 @@ class Client:
             self.pre_menu()
 
     def menu(self):
-        print('''Hi, this is the menu page. The available options are: \n1. Chat \n2. Create New Group \n3. Exit\nPlease enter your choice (number):''')
-        option = int(input())
-        if option == 3: 
-            quit()
-        elif option == 2:
-            self.createNewGroup()
-        elif option == 1:
-            self.chat()
-        else:
-            print("Please select a valid option")
-            self.menu()
+        while True:
+            print('''Hi, this is the menu page. The available options are: \n1. Chat \n2. Create New Group \n3. Exit\nPlease enter your choice (number):''')
+            option = int(input())
+            if option == 3: 
+                break
+            elif option == 2:
+                self.createNewGroup()
+            elif option == 1:
+                self.chat()
+            else:
+                print("Please select a valid option")
     
     def chat(self):
         print("You can enter '/back' to return to menu")
@@ -112,7 +112,6 @@ class Client:
         self.end_user = input("Please enter the name of the user/group to chat with: ")
         if self.end_user == '/back':
             self.end_user = None
-            self.menu()
             return 
         if self.end_user not in self.active_users:
             print("Please enter the correct username:")
@@ -121,6 +120,8 @@ class Client:
 
         if len(self.active_users[self.end_user]) > 0:
             for msg in self.active_users[self.end_user]:
+                if msg.name == self.username:
+                    continue
                 print("{}: {}".format(msg.name, msg.message))
                 if msg.message.startswith("/file:"): # TODO CHECK IF THIS SNIPPET IS PLACED CORRECTLY
                     # print('dwnldng file')
@@ -137,7 +138,6 @@ class Client:
             message = input("{}(Me): ".format(self.username))
             if message == "/back":
                 self.end_user = None
-                self.menu()
                 return 
             if message.startswith("/file:"):
                 # print('Uploading section:') #   debug stmt
@@ -186,7 +186,6 @@ class Client:
         for i,j in enumerate(group.users):
             print(f'{i+1}. {j}')
 
-        self.menu()
 
 
     def __listen_for_messages(self):
@@ -208,6 +207,8 @@ class Client:
                 dest_var = note.name
 
             if dest_var == self.end_user:
+                if note.name == self.username:
+                    continue
                 LINE_CLEAR = '\x1b[2K' 
                 print('\r', end=LINE_CLEAR)
                 print("{}: {}\n{}(Me): ".format(note.name, note.message,self.username), end = '')   # TODO can check flush=True, if req!
