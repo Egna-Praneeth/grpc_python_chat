@@ -36,7 +36,7 @@ class ChatServerStub(object):
                 )
         self.CreateGroup = channel.unary_unary(
                 '/grpc.ChatServer/CreateGroup',
-                request_serializer=chat__pb2.Group.SerializeToString,
+                request_serializer=chat__pb2.UserName.SerializeToString,
                 response_deserializer=chat__pb2.ReturnCode.FromString,
                 )
         self.FtpUploadFile = channel.stream_stream(
@@ -122,7 +122,7 @@ def add_ChatServerServicer_to_server(servicer, server):
             ),
             'CreateGroup': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateGroup,
-                    request_deserializer=chat__pb2.Group.FromString,
+                    request_deserializer=chat__pb2.UserName.FromString,
                     response_serializer=chat__pb2.ReturnCode.SerializeToString,
             ),
             'FtpUploadFile': grpc.stream_stream_rpc_method_handler(
@@ -225,7 +225,7 @@ class ChatServer(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/grpc.ChatServer/CreateGroup',
-            chat__pb2.Group.SerializeToString,
+            chat__pb2.UserName.SerializeToString,
             chat__pb2.ReturnCode.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
