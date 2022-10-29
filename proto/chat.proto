@@ -49,13 +49,18 @@ message FtpResponse {
   string progressReply = 2;
 }
 
+message Group {
+    string GroupName = 1;
+    repeated string users = 2;
+}
+
 service ChatServer {
     // This bi-directional stream makes it possible to send and receive Notes between 2 persons
     rpc ChatStream (UserName) returns (stream Note);
     rpc SendNote (Note) returns (Empty);
     rpc JoinServer(UserName) returns (Empty);
     rpc getListOfUsers(Empty) returns (UsersList);
-    rpc CreateGroup(UserName) returns (ReturnCode);
+    rpc CreateGroup(Group) returns (ReturnCode);
     rpc FtpUploadFile(stream FtpUploadRequest) returns (stream StringResponse) {} // stream respnse to recive status of upload
     rpc FtpDownloadFile(FileMetadata) returns (stream FtpResponse) {} // could be just username? and send his files?
 }
