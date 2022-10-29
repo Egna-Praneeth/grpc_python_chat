@@ -17,6 +17,8 @@ class ChatServer(rpc.ChatServerServicer):  # inheriting here from the protobuf r
         self.chats = []
         self.usersList = []
         self.fileDir = 'uploadedFiles/'
+        self.groupDetails = {}
+        self.userGroups = {}
 
     # The stream which will be used to send new messages to clients
     def ChatStream(self, username: chat.UserName, context):
@@ -38,6 +40,8 @@ class ChatServer(rpc.ChatServerServicer):  # inheriting here from the protobuf r
                 if n.dest == username.username:
                     # print(username.username + " is a match")
                     yield n
+                elif n.dest in self.userGroups[username.username]:
+                    yield n
 
     def SendNote(self, request: chat.Note, context):
         """
@@ -48,7 +52,10 @@ class ChatServer(rpc.ChatServerServicer):  # inheriting here from the protobuf r
         :return:
         """
         # this is only for the server console
-        print("[{}] to [{}] : {}".format(request.name, request.dest, request.message))
+        if request.dest in self.groupDetails:
+            print("[{}] to Group[{}] : {}".format(request.name, request.dest, request.message))
+        else:
+            print("[{}] to [{}] : {}".format(request.name, request.dest, request.message))
         # Add it to the chat history
         
         self.chats.append(request)
@@ -56,6 +63,7 @@ class ChatServer(rpc.ChatServerServicer):  # inheriting here from the protobuf r
 
     def JoinServer(self, u: chat.UserName,context):
         self.usersList.append(u.username)
+        self.userGroups[u.username] = set()
         # Below for loop is to print the list.
         # i = 1
         # for user in self.usersList:
@@ -68,9 +76,36 @@ class ChatServer(rpc.ChatServerServicer):  # inheriting here from the protobuf r
         users_list_obj = chat.UsersList()
         for user in self.usersList:
             users_list_obj.users.append(user)
-        # users_list_obj.users = self.usersList
+        for group in self.groupDetails:
+            users_list_obj.users.append(group)
+        return users_list_obj
+
+    def getListOfOnlyUsers(self,request_iterator,context):
+        users_list_obj = chat.UsersList()
+        for user in self.usersList:
+            users_list_obj.users.append(user)
         return users_list_obj
     
+    def CreateGroup(self, g: chat.Group, context):
+        x = set()
+
+        for i in g.users:
+            x.add(i)
+
+        self.groupDetails[g.GroupName] = x
+
+        for i in g.users:
+            self.userGroups[i].add(g.GroupName)
+
+        print(f'New Group created\n\tGroup Name - {g.GroupName}\n\tGroup Creator - {g.username}\n\tGroup Members:')
+        for i,j in enumerate(g.users):
+            print(f'\t\t{i+1}. {j}')
+
+        # print(f'self.userGroups dictionary - {self.userGroups}')
+        # print(f'self.groupDetails dictionary - {self.groupDetails}')
+
+        return chat.Empty()
+
     def FtpUploadFile(self, request_iterator, context):
         '''
         upload file to server which client is streaming
@@ -139,11 +174,13 @@ if __name__ == '__main__':
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))  # create a gRPC server
     rpc.add_ChatServerServicer_to_server(ChatServer(), server)  # register the server to gRPC
     # gRPC basically manages all the threading and server responding logic, which is perfect!
-    print('Starting server. Listening...')
+    # print('Starting server. Listening...')
     server.add_insecure_port('[::]:' + str(port))
     server.start()
+    print("Server started, listening on " + str(port))
+    server.wait_for_termination()
     # Server starts in background (in another thread) so keep waiting
     # if we don't wait here the main thread will end, which will end all the child threads, and thus the threads
     # from the server won't continue to work and stop the server
-    while True:
-        time.sleep(64 * 64 * 100)
+    # while True:
+    #     time.sleep(64 * 64 * 100)

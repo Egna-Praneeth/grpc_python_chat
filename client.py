@@ -31,10 +31,12 @@ class Client:
         self.menu()
 
     def menu(self):
-        print('''Hi, this is the menu page. The available options are: \n1. Chat \n2. Exit\nPlease enter your choice (number):''')
+        print('''Hi, this is the menu page. The available options are: \n1. Chat \n2. Create New Group \n3. Exit\nPlease enter your choice (number):''')
         option = int(input())
-        if option == 2: 
+        if option == 3: 
             quit()
+        elif option == 2:
+            self.createNewGroup()
         elif option == 1:
             self.chat()
         else:
@@ -44,7 +46,7 @@ class Client:
     def chat(self):
         print("You can enter '/back' to return to menu")
         self.get_users_list()
-        self.end_user = input("Please enter the name of the user to chat with: ")
+        self.end_user = input("Please enter the name of the user/group to chat with: ")
         if self.end_user == '/back':
             self.end_user = None
             self.menu()
@@ -61,6 +63,12 @@ class Client:
                     # print('dwnldng file')
                     self.handleDownloadFile(msg) # TODO make it async? thread/pool, but it might hamper other printed msgs
             
+                # print('Am I here 0:',msg,msg.message.startswith("/file:"))
+                # if(msg.message.startswith("/file:")):
+                #     print('AM I HERE?')
+                #     self.handleDownloadFile(msg) # TODO make it async? thread/pool, but it might hamper other printed msgs
+            
+            self.active_users[self.end_user] = []
         
         while True:
             message = input("{}(Me): ".format(self.username))
@@ -85,6 +93,39 @@ class Client:
                 
                 self.conn.SendNote(note)  # send the Note to the server
 
+    def createNewGroup(self):
+        group = chat.Group()
+        userlist = self.get_users_list(print_options=False)
+        
+        print("Below is the list of active users: ")
+
+        for i,j in enumerate(userlist):
+            print(f'{i+1}. {j}')
+        
+        print('Please enter a space separated list of usernames you want to include in\nthe group - ')
+        # group.users = ' '.split(input().strip())
+        user_input = input()
+        user_input = user_input.strip().split()
+        user_input = [i for i in user_input if i in userlist]
+        print('Please enter the group name - ')
+        group.GroupName = input()
+        group.username = self.username
+
+        for i in user_input:
+            group.users.append(i)
+
+        if self.username not in group.users:
+            group.users.append(self.username)
+
+        self.conn.CreateGroup(group)
+
+        print(f'Created Group with Group name - {group.GroupName} and users')
+        for i,j in enumerate(group.users):
+            print(f'{i+1}. {j}')
+
+        self.menu()
+
+
     def __listen_for_messages(self):
         """
         This method will be ran in a separate thread as the main/ui thread, because the for-in call is blocking
@@ -92,10 +133,18 @@ class Client:
         """
         userName = chat.UserName()
         userName.username = self.username
+        dest_var = ''
         for note in self.conn.ChatStream(userName):  # this line will wait for new messages from the server!
             # print("R[{}] {}".format(note.name, note.message))  # debugging statement
             # print('here2',note.message.startswith("/file:"))
-            if note.name == self.end_user:
+            if note.dest != self.username:
+            # if group message
+                dest_var = note.dest
+            else:
+            # not group message
+                dest_var = note.name
+
+            if dest_var == self.end_user:
                 LINE_CLEAR = '\x1b[2K' 
                 print('\r', end=LINE_CLEAR)
                 print("{}: {}\n{}(Me): ".format(note.name, note.message,self.username), end = '')   # TODO can check flush=True, if req!
@@ -104,11 +153,11 @@ class Client:
                     self.handleDownloadFile(note) # TODO make it async? thread/pool, but it might hamper other printed msgs
             
             else:
-                if note.name in self.active_users:
-                    self.active_users[note.name].append(note)
+                if dest_var in self.active_users:
+                    self.active_users[dest_var].append(note)
                 else:
-                    self.active_users[note.name] = []
-                    self.active_users[note.name].append(note)
+                    self.active_users[dest_var] = []
+                    self.active_users[dest_var].append(note)
 
             # self.chat_list.insert(END, "[{}] {}\n".format(note.name, note.message))  # add the message to the UI
 
@@ -118,21 +167,29 @@ class Client:
         self.conn.JoinServer(userName)
         print("Joined the userspace")
     
-    def get_users_list(self):
+    def get_users_list(self, print_options=True):
         i = 1
-        users_list = self.conn.getListOfUsers(chat.Empty())
-        print("Below is the list of active users: ")
-        for user in users_list.users:
-            if user in self.active_users:
-                # If the user's messages are unread. 1. ram [3] (this 3 indicates unread messages)
-                if len(self.active_users[user]) > 0:
-                    print(str(i) + ". " + user + " [{}]".format(len(self.active_users[user])))
-                else : # len of list is 0
+        users_list = []
+        
+        if print_options:
+            users_list = self.conn.getListOfUsers(chat.Empty())
+            print("Below is the list of active users: ")
+            for user in users_list.users:
+                if user == self.username:
+                    continue
+                if user in self.active_users:
+                    # If the user's messages are unread. 1. ram [3] (this 3 indicates unread messages)
+                    if len(self.active_users[user]) > 0:
+                        print(str(i) + ". " + user + " [{}]".format(len(self.active_users[user])))
+                    else : # len of list is 0
+                        print(str(i) + ". " + user)
+                else:
+                    self.active_users[user] = []        
                     print(str(i) + ". " + user)
-            else:
-                self.active_users[user] = []        
-                print(str(i) + ". " + user)
-            i = i + 1
+                i = i + 1
+        else:
+            users_list = self.conn.getListOfOnlyUsers(chat.Empty())
+        return users_list.users
             
     def readIterfile(self, fileString, chunkSize=1024):
         filePath = fileString[6:]
